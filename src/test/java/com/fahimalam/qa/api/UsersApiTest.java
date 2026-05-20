@@ -8,54 +8,65 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Rest-Assured smoke tests against the public reqres.in sandbox.
- * Demonstrates GET/POST chaining, schema-light assertions, and
+ * Rest-Assured smoke tests against the JSONPlaceholder sandbox.
+ * Demonstrates GET / POST chaining, schema-light assertions, and
  * TestNG parallel-safe API coverage that runs alongside the UI suite.
  */
 public class UsersApiTest {
 
     @BeforeClass
     public void setUp() {
-        io.restassured.RestAssured.baseURI = "https://reqres.in";
+        io.restassured.RestAssured.baseURI = "https://jsonplaceholder.typicode.com";
     }
 
     @Test(groups = "api")
-    public void listUsersReturnsPageMetadata() {
+    public void listUsersReturnsTenUsers() {
         given()
                 .when()
-                .get("/api/users?page=2")
+                .get("/users")
                 .then()
                 .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("page", equalTo(2))
-                .body("data", hasSize(greaterThan(0)))
-                .body("data[0].email", containsString("@"));
+                .contentType(containsString("application/json"))
+                .body("size()", equalTo(10))
+                .body("[0].email", containsString("@"))
+                .body("[0].address.city", not(emptyString()));
     }
 
     @Test(groups = "api")
-    public void createUserReturnsIdentifier() {
+    public void getUserByIdReturnsExpectedRecord() {
+        given()
+                .when()
+                .get("/users/1")
+                .then()
+                .statusCode(200)
+                .body("id", equalTo(1))
+                .body("username", equalTo("Bret"))
+                .body("company.name", not(emptyString()));
+    }
+
+    @Test(groups = "api")
+    public void createPostEchoesPayloadWithGeneratedId() {
         String payload = """
-                { "name": "fahim", "job": "sdet" }
+                { "title": "qa portfolio", "body": "rest-assured smoke", "userId": 1 }
                 """;
 
         given()
                 .contentType(ContentType.JSON)
                 .body(payload)
                 .when()
-                .post("/api/users")
+                .post("/posts")
                 .then()
                 .statusCode(201)
-                .body("name", equalTo("fahim"))
-                .body("job", equalTo("sdet"))
-                .body("id", not(emptyString()))
-                .body("createdAt", not(emptyString()));
+                .body("title", equalTo("qa portfolio"))
+                .body("userId", equalTo(1))
+                .body("id", greaterThan(0));
     }
 
     @Test(groups = "api")
     public void unknownUserReturns404() {
         given()
                 .when()
-                .get("/api/users/9999")
+                .get("/users/9999")
                 .then()
                 .statusCode(404);
     }
