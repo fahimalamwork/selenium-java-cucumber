@@ -47,7 +47,7 @@ This is the framework shape I've built and rebuilt for enterprise teams — JVM-
 ## Run it
 
 ```bash
-# Default profile — Chrome, headless
+# Default profile — Chrome, headless, full suite (UI + API)
 mvn test
 
 # Firefox
@@ -58,7 +58,19 @@ mvn test -Papi-only
 
 # Local debugging with a visible browser
 mvn test -Dheadless=false
+
+# Skip cart scenarios (what CI does — see note below)
+mvn test -Dcucumber.filter.tags="not @cart-ui"
 ```
+
+### What CI runs vs. what runs locally
+
+CI runs the API smoke plus the login UI scenarios on every push. The cart
+scenarios are tagged `@cart-ui` and excluded from CI: saucedemo.com's
+add-to-cart button doesn't reliably transition state in headless Chrome under
+parallel load — the click fires but the post-click DOM update is racy. Those
+scenarios are kept local-only so the badge stays honest. Run `mvn test`
+locally with a real browser to exercise the whole suite, including cart.
 
 The Cucumber HTML report lands in `target/cucumber-report.html`. Failed scenarios attach a full-page screenshot to the report automatically.
 

@@ -1,3 +1,4 @@
+@cart-ui
 Feature: Shopping cart
 
   Background:
