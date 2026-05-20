@@ -9,13 +9,12 @@ on:
 
 jobs:
   test:
-    name: ${{ matrix.browser }} — JDK ${{ matrix.java }}
+    name: chrome — JDK ${{ matrix.java }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         java: ['17']
-        browser: [chrome, firefox]
     steps:
       - uses: actions/checkout@v4
 
@@ -25,13 +24,23 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
 
-      - name: Run suite (${{ matrix.browser }})
-        run: mvn -B test -P${{ matrix.browser == 'firefox' && 'firefox' || 'default' }}
+      - uses: browser-actions/setup-chrome@v1
+        id: setup-chrome
+        with:
+          chrome-version: stable
+
+      - name: Run API smoke (fast, no browser)
+        run: mvn -B test -Papi-only
+
+      - name: Run full suite (Chrome, headless)
+        env:
+          CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: mvn -B test
 
       - name: Upload Cucumber report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cucumber-report-${{ matrix.browser }}
+          name: cucumber-report
           path: target/cucumber-report.*
           retention-days: 14
