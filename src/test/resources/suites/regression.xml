@@ -1,5 +1,5 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="regression" parallel="methods" thread-count="4">
+<suite name="regression" parallel="methods" thread-count="2">
   <test name="ui-bdd">
     <classes>
       <class name="com.fahimalam.qa.runners.CucumberRunner"/>

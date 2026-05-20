@@ -14,7 +14,8 @@ public abstract class BasePage {
 
     protected BasePage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        long seconds = Long.parseLong(System.getProperty("wait.seconds", "20"));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(seconds));
     }
 
     protected WebElement visible(By by) {
